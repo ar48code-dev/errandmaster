@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-text font-sans antialiased;
+        background-image: radial-gradient(circle at 20% 20%, hsla(262, 83%, 58%, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, hsla(142, 76%, 36%, 0.1) 0%, transparent 50%);
+        background-attachment: fixed;
+    }
+}
+
+@layer components {
+
+    /* Glassmorphism Card */
+    .glass-card {
+        @apply bg-card/90 backdrop-blur-xl border border-border rounded-2xl shadow-2xl;
+        background: linear-gradient(135deg,
+                hsla(240, 4%, 12%, 0.9) 0%,
+                hsla(240, 4%, 9%, 0.9) 100%);
+    }
+
+    /* Gradient Button */
+    .btn-gradient {
+        @apply relative px-6 py-3 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300;
+        background: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(262, 83%, 48%) 100%);
+    }
+
+    .btn-gradient:hover {
+        @apply shadow-lg shadow-primary/50 scale-105;
+    }
+
+    .btn-gradient:active {
+        @apply scale-95;
+    }
+
+    /* Animated Gradient Text */
+    .gradient-text {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary;
+        background-size: 200% auto;
+        animation: gradient 3s ease infinite;
+    }
+
+    /* Input Field */
+    .input-field {
+        @apply w-full bg-background/50 border border-border rounded-xl px-4 py-3 text-text placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+    }
+
+    /* Upload Zone */
+    .upload-zone {
+        @apply border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-all duration-300 cursor-pointer;
+    }
+
+    .upload-zone.dragover {
+        @apply border-primary bg-primary/5 scale-105;
+    }
+
+    /* Errand Card */
+    .errand-card {
+        @apply glass-card p-4 hover:bg-card-hover transition-all duration-300 hover:scale-102 hover:shadow-xl;
+    }
+
+    /* Stats Card */
+    .stats-card {
+        @apply glass-card p-6 text-center;
+    }
+
+    /* Route Step */
+    .route-step {
+        @apply relative pl-8 pb-6 animate-slide-up;
+    }
+
+    .route-step::before {
+        @apply absolute left-0 top-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold;
+        content: attr(data-step);
+    }
+
+    .route-step::after {
+        @apply absolute left-3 top-6 w-0.5 h-full bg-gradient-to-b from-primary to-transparent;
+        content: '';
+    }
+
+    .route-step:last-child::after {
+        @apply hidden;
+    }
+
+    /* Loading Animation */
+    .loading-pulse {
+        @apply animate-pulse-slow;
+    }
+
+    /* Scroll Animations */
+    .fade-in {
+        @apply animate-fade-in;
+    }
+
+    .slide-up {
+        @apply animate-slide-up;
+    }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .scale-102 {
+        transform: scale(1.02);
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: hsl(240, 10%, 3.9%);
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(262, 83%, 58%);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(262, 83%, 48%);
+}
