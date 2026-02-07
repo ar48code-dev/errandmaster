@@ -1,59 +1,58 @@
-import { TrendingUp, DollarSign, Leaf } from 'lucide-react';
+import { TrendingUp, DollarSign, Leaf, Map as MapIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function StatsCard({ stats }) {
     const [animated, setAnimated] = useState(false);
 
     useEffect(() => {
-        // Trigger animation after mount
-        const timer = setTimeout(() => setAnimated(true), 100);
-        return () => clearTimeout(timer);
+        setAnimated(true);
     }, []);
 
-    const statItems = [
+    const items = [
         {
+            label: 'Time Efficiency',
+            value: `${stats.time_saved_mins}m`,
             icon: TrendingUp,
-            label: 'Time Saved',
-            value: `${stats.time_saved_mins} min`,
             color: 'text-primary',
-            bgColor: 'bg-primary/10',
+            bg: 'bg-primary/10'
         },
         {
+            label: 'Financial Gain',
+            value: `$${stats.money_saved_usd}`,
             icon: DollarSign,
-            label: 'Money Saved',
-            value: `$${stats.money_saved_usd.toFixed(2)}`,
-            color: 'text-accent',
-            bgColor: 'bg-accent/10',
+            color: 'text-yellow-500',
+            bg: 'bg-yellow-500/10'
         },
         {
-            icon: Leaf,
-            label: 'Carbon Reduction',
+            label: 'Carbon Offset',
             value: stats.carbon_reduction,
-            color: 'text-green-400',
-            bgColor: 'bg-green-400/10',
+            icon: Leaf,
+            color: 'text-green-500',
+            bg: 'bg-green-500/10'
+        },
+        {
+            label: 'Spatial Mastery',
+            value: `${stats.distance_optimized_km}km`,
+            icon: MapIcon,
+            color: 'text-accent',
+            bg: 'bg-accent/10'
         },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 fade-in">
-            {statItems.map((item, index) => (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {items.map((item, i) => (
                 <div
-                    key={item.label}
-                    className="stats-card"
-                    style={{ animationDelay: `${index * 100}ms` }}
+                    key={i}
+                    className={`glass-card p-6 flex flex-col items-center justify-center text-center transition-all duration-700 border-2 border-transparent hover:border-white/5 ${animated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                        }`}
+                    style={{ transitionDelay: `${i * 100}ms` }}
                 >
-                    <div className={`w-12 h-12 rounded-full ${item.bgColor} flex items-center justify-center mx-auto mb-3`}>
-                        <item.icon className={`w-6 h-6 ${item.color}`} />
+                    <div className={`p-4 rounded-2xl ${item.bg} mb-4`}>
+                        <item.icon className={`w-8 h-8 ${item.color}`} />
                     </div>
-
-                    <div className={`text-3xl font-bold mb-1 ${item.color} transition-all duration-1000 ${animated ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-                        }`}>
-                        {item.value}
-                    </div>
-
-                    <div className="text-sm text-text-muted font-semibold">
-                        {item.label}
-                    </div>
+                    <div className="text-3xl font-black mb-1 tracking-tighter">{item.value}</div>
+                    <div className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">{item.label}</div>
                 </div>
             ))}
         </div>

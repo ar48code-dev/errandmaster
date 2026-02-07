@@ -2,63 +2,63 @@ import { getGeminiModel, MODEL_CONFIG } from '../config/gemini';
 import { extractJSON } from '../utils/jsonParser';
 
 /**
- * GEMINI 3 ADVANCED MULTIMODAL REASONER
+ * GEMINI 3 ADVANCED SPATIAL LOGISTICS REASONER
  * 
- * This service implements Interleaved Multimodal Reasoning, allowing the model
- * to cross-reference multiple data sources (Audio, Image, Video, Text) simultaneously.
- * 
- * Hackathon-Specific Features:
- * 1. Parallel Source Synthesis: Analyzing a voice memo in context of a list photo.
- * 2. Real-Time Logistics Grounding: Saturday, February 7, 2026.
- * 3. Agentic Routing: Bundling and Conflict Detection.
+ * This service implements Native Spatial Intelligence:
+ * 1. Geometric Route Optimization (Shortest path/Time)
+ * 2. Carbon/Fuel Impact Calculation (Theoretical)
+ * 3. Proximity-Based Errand Bundling
+ * 4. Interleaved Multimodal Synthesis (Audio + Visual cross-referencing)
  */
 
 const SYSTEM_PROMPT = `
 ROLE: ErrandMaster AI Logistics Agent (Powered by Gemini 3 Native Multimodality)
 
 OBJECTIVE:
-Synthesize messy, interleaved multimodal inputs into an ultra-optimized logistical plan.
+Apply advanced spatial reasoning and multimodal synthesis to transform chaotic inputs into the ultimate logistical plan.
 
-CAPABILITIES:
-1. INTERLEAVED SYNTHESIS: You will receive text, images, audio, and video *together*. Cross-reference them. e.g. If the user says "Get this" in audio while pointing at a handwritten item in a photo, link them.
-2. SPATIAL REASONING: Calculate the logically shortest path between physical locations.
-3. AGENTIC CONFLICT RESOLUTION: Identify impossible tasks (e.g. "Get mail" when the Post Office is closed on the specific date).
-4. SMART BUNDLING: Group errands by proximity.
+SPATIAL INTELLIGENCE CAPABILITIES:
+1. GEOMETRIC OPTIMIZATION: Calculate the most efficient sequence of stops. Minimize backtracking.
+2. ENVIRONMENTAL IMPACT: Provide an estimate of Carbon Reduction (%) based on route optimization vs. a random route.
+3. AGENTIC BUNDLING: Identify errands within "walking distance" or "same-plaza" status.
+4. SPATIAL CONFLICT DETECTION: Flag errands that are geographically dispersed and likely to cause fatigue or fuel waste.
 
 DATE CONTEXT:
-Today is Saturday, February 7, 2026. Use this to determine store hours and traffic patterns.
+Today is Saturday, February 7, 2026. Use this for specific Saturday logistical rules (e.g., Saturday hours, lighter commercial traffic).
 
 RESPONSE ARCHITECTURE (STRICT JSON):
 {
-  "summary": "Professional overview of the synthesized plan",
+  "summary": "Professional overview emphasizing SPATIAL GAINS.",
   "errands_detected": [
     {
-      "location": "Name of store/place",
-      "task": "Specific item/action",
+      "location": "Name",
+      "task": "Item/Action",
       "priority": "high/medium/low",
-      "source": "Found in [Image/Audio/Text/Video/Camera]"
+      "spatial_tag": "e.g. Shopping Mall / Downtown / Residential"
     }
   ],
   "optimized_route": [
     {
       "step": 1,
-      "action": "Specific instruction",
-      "location": "Where to go",
-      "tip": "Logistics advice (bundling, closure alerts, etc.)"
+      "action": "Instruction",
+      "location": "Location",
+      "tip": "Logistics advice",
+      "spatial_nexus": "Why this step is logically next in the sequence"
     }
   ],
   "stats": {
     "time_saved_mins": 0,
     "money_saved_usd": 0,
-    "carbon_reduction": "0%"
+    "carbon_reduction": "0%",
+    "distance_optimized_km": 0
   },
-  "logic_trace": "Forensic explanation of how you synthesized the interleaved sources."
+  "logic_trace": "Forensic trace of spatial reasoning and interleaved source synthesis."
 }
 
 OPERATIONAL RULES:
-- Never provide general advice.
-- Be precise with 2026 logistical context.
-- Be high-energy and professional.
+- Focus on SPATIAL EFFICIENCY.
+- Use Saturday Feb 7, 2026 as the hard context.
+- Assume the user wants a professional, high-energy agent.
 `;
 
 async function analyzeErrands(textInput, files, apiKey) {
@@ -76,26 +76,21 @@ async function analyzeErrands(textInput, files, apiKey) {
       }
     }
 
-    // Advanced Synthesis Prompt
     const userPrompt = `
-[SYSTEM_LOG: INTERLEAVED SYNTHESIS REQUEST]
-Input Status: ${files.length} Multimodal Attachments + ${textInput.length > 0 ? 'Text Context' : 'No Text Context'}
-
-USER INPUTS:
-"${textInput || 'Synthesize provided attachments into a route.'}"
+[SPATIAL LOGISTICS REQUEST]
+Sources: ${files.length} Attachments | User: "${textInput || 'Optimize my errands.'}"
 
 INSTRUCTIONS:
-1. Examine all attachments in parallel.
-2. Extract errands from the Voice/Photos/Video.
-3. Apply logic for Saturday, Feb 7, 2026.
-4. Generate the optimized sequence.
+- Perform multiline spatial analysis.
+- Link Audio/Visual/Text sources.
+- Calculate Carbon/Distance stats.
+- Solve for Saturday Feb 7, 2026.
 
 Return ONLY the raw JSON block.
 `;
 
     parts.push({ text: userPrompt });
 
-    // Using generateContent with systemInstruction (Gemini 3 pattern)
     const result = await model.generateContent({
       contents: [{ role: 'user', parts }],
       ...MODEL_CONFIG,
@@ -108,7 +103,7 @@ Return ONLY the raw JSON block.
     return extractJSON(text);
 
   } catch (error) {
-    console.error('Gemini 3 Reasoning Error:', error);
+    console.error('Gemini 3 Spatial Error:', error);
     throw new Error(`AI Core Fault: ${error.message}`);
   }
 }
