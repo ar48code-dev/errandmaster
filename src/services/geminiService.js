@@ -1,82 +1,115 @@
 import { getGeminiModel, MODEL_CONFIG } from '../config/gemini';
 import { extractJSON } from '../utils/jsonParser';
 
-// Master System Prompt (Strictly following your plan)
+/**
+ * GEMINI 3 ADVANCED MULTIMODAL REASONER
+ * 
+ * This service implements Interleaved Multimodal Reasoning, allowing the model
+ * to cross-reference multiple data sources (Audio, Image, Video, Text) simultaneously.
+ * 
+ * Hackathon-Specific Features:
+ * 1. Parallel Source Synthesis: Analyzing a voice memo in context of a list photo.
+ * 2. Real-Time Logistics Grounding: Saturday, February 7, 2026.
+ * 3. Agentic Routing: Bundling and Conflict Detection.
+ */
+
 const SYSTEM_PROMPT = `
-ROLE: ErrandMaster AI Logistics Agent
-You are an advanced logistics orchestrator powered by Gemini 3. Your goal is to transform messy, multimodal inputs (handwritten lists, photos of receipts, voice memos, video scans, or text) into an ultra-optimized errand route.
+ROLE: ErrandMaster AI Logistics Agent (Powered by Gemini 3 Native Multimodality)
 
-### CAPABILITIES & TOOLS:
-1. **Multimodal Analysis**: You can "see" images and video, and "hear" audio. Identify store names, items, and priority markers from any media provided.
-2. **Spatial Reasoning**: Calculate the most efficient path between multiple locations to minimize fuel and time.
-3. **Agentic Action**: You are permitted to suggest "Bundling" (e.g., "Since you are at Target, the Post Office is next door—do both now").
-4. **Google Search Grounding**: Use search to find store hours or real-time traffic if the user context allows.
+OBJECTIVE:
+Synthesize messy, interleaved multimodal inputs into an ultra-optimized logistical plan.
 
-### RESPONSE ARCHITECTURE (Strict JSON):
-Every analysis MUST be followed by a raw JSON block for the UI to parse. Use this schema:
+CAPABILITIES:
+1. INTERLEAVED SYNTHESIS: You will receive text, images, audio, and video *together*. Cross-reference them. e.g. If the user says "Get this" in audio while pointing at a handwritten item in a photo, link them.
+2. SPATIAL REASONING: Calculate the logically shortest path between physical locations.
+3. AGENTIC CONFLICT RESOLUTION: Identify impossible tasks (e.g. "Get mail" when the Post Office is closed on the specific date).
+4. SMART BUNDLING: Group errands by proximity.
+
+DATE CONTEXT:
+Today is Saturday, February 7, 2026. Use this to determine store hours and traffic patterns.
+
+RESPONSE ARCHITECTURE (STRICT JSON):
 {
-  "summary": "Short 1-sentence overview",
-  "errands_detected": [{"location": "", "task": "", "priority": "high/med/low"}],
-  "optimized_route": [{"step": 1, "action": "", "location": "", "tip": ""}],
+  "summary": "Professional overview of the synthesized plan",
+  "errands_detected": [
+    {
+      "location": "Name of store/place",
+      "task": "Specific item/action",
+      "priority": "high/medium/low",
+      "source": "Found in [Image/Audio/Text/Video/Camera]"
+    }
+  ],
+  "optimized_route": [
+    {
+      "step": 1,
+      "action": "Specific instruction",
+      "location": "Where to go",
+      "tip": "Logistics advice (bundling, closure alerts, etc.)"
+    }
+  ],
   "stats": {
     "time_saved_mins": 0,
     "money_saved_usd": 0,
     "carbon_reduction": "0%"
   },
-  "logic_trace": "Brief explanation of why this route was chosen."
+  "logic_trace": "Forensic explanation of how you synthesized the interleaved sources."
 }
 
-### OPERATIONAL RULES:
-- **Tone**: Professional, high-energy, and efficient.
-- **Constraints**: If a user's list is impossible (e.g., store is closed), flag it immediately.
-- **2026 Context**: Always assume today's date is February 7, 2026.
-- **Negative Constraint**: Never provide general advice; stay strictly focused on the specific errands provided.
+OPERATIONAL RULES:
+- Never provide general advice.
+- Be precise with 2026 logistical context.
+- Be high-energy and professional.
 `;
 
-/**
- * Analyze errands using Gemini 3's multimodal capabilities (Text, Image, Audio, Video)
- */
-export async function analyzeErrands(textInput, file, apiKey) {
+async function analyzeErrands(textInput, files, apiKey) {
   const model = getGeminiModel(apiKey);
-  if (!model) {
-    throw new Error('API Key is missing. Please provide a valid Gemini API key.');
-  }
+  if (!model) throw new Error('AI Core Auth Failed: Missing API Key.');
 
   try {
     const parts = [];
 
-    // Process file (Image, Audio, or Video)
-    if (file) {
-      const fileData = await fileToGenerativePart(file);
-      parts.push(fileData);
+    // Interleave all multimodal files
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const fileData = await fileToGenerativePart(file);
+        parts.push(fileData);
+      }
     }
 
-    // Process text
+    // Advanced Synthesis Prompt
     const userPrompt = `
-Analyze this input as ErrandMaster:
-${file ? `[FILE UPLOADED: ${file.type}]` : ''}
-User Context: "${textInput}"
+[SYSTEM_LOG: INTERLEAVED SYNTHESIS REQUEST]
+Input Status: ${files.length} Multimodal Attachments + ${textInput.length > 0 ? 'Text Context' : 'No Text Context'}
 
-Today's Date: February 7, 2026.
-Provide the optimized route in strict JSON.
+USER INPUTS:
+"${textInput || 'Synthesize provided attachments into a route.'}"
+
+INSTRUCTIONS:
+1. Examine all attachments in parallel.
+2. Extract errands from the Voice/Photos/Video.
+3. Apply logic for Saturday, Feb 7, 2026.
+4. Generate the optimized sequence.
+
+Return ONLY the raw JSON block.
 `;
 
     parts.push({ text: userPrompt });
 
+    // Using generateContent with systemInstruction (Gemini 3 pattern)
     const result = await model.generateContent({
       contents: [{ role: 'user', parts }],
       ...MODEL_CONFIG,
       systemInstruction: SYSTEM_PROMPT,
     });
 
-    const response = result.response;
+    const response = await result.response;
     const text = response.text();
 
     return extractJSON(text);
 
   } catch (error) {
-    console.error('Gemini 3 Multimodal Error:', error);
-    throw new Error(`AI Analysis failed: ${error.message}`);
+    console.error('Gemini 3 Reasoning Error:', error);
+    throw new Error(`AI Core Fault: ${error.message}`);
   }
 }
 
@@ -98,3 +131,5 @@ function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
+
+export { analyzeErrands };

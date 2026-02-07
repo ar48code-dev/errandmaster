@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Zap, AlertTriangle, Github, Key, Settings, X, Check } from 'lucide-react';
+import { Zap, AlertTriangle, Key, Settings, X, Check, ShieldCheck, Cpu } from 'lucide-react';
 import InputPanel from './components/InputPanel';
 import RouteDisplay from './components/RouteDisplay';
 import LoadingState from './components/LoadingState';
@@ -9,9 +9,20 @@ function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
-    const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+    const [apiKey, setApiKey] = useState('');
     const [showSettings, setShowSettings] = useState(false);
-    const [tempKey, setTempKey] = useState(apiKey);
+    const [tempKey, setTempKey] = useState('');
+
+    // Load key from storage on mount
+    useEffect(() => {
+        const savedKey = localStorage.getItem('gemini_api_key');
+        if (savedKey) {
+            setApiKey(savedKey);
+            setTempKey(savedKey);
+        } else {
+            setShowSettings(true);
+        }
+    }, []);
 
     const saveApiKey = (e) => {
         e.preventDefault();
@@ -20,10 +31,10 @@ function App() {
         setShowSettings(false);
     };
 
-    const handleAnalyze = async (textInput, imageFile) => {
+    const handleAnalyze = async (textInput, files) => {
         if (!apiKey) {
             setShowSettings(true);
-            setError("Please set your Gemini API key first.");
+            setError("Security: AI Intelligence Core Offline. Please provide a Gemini Key.");
             return;
         }
 
@@ -32,170 +43,176 @@ function App() {
         setResult(null);
 
         try {
-            const analysisResult = await analyzeErrands(textInput, imageFile, apiKey);
+            const analysisResult = await analyzeErrands(textInput, files, apiKey);
             setResult(analysisResult);
         } catch (err) {
-            console.error('Analysis error:', err);
-            setError(err.message || 'Failed to analyze errands. Please check your API key.');
+            console.error('Logic Error:', err);
+            setError(err.message || 'The AI Core encountered a reasoning conflict. Please check your inputs.');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-background text-text">
-            {/* Header */}
-            <header className="border-b border-border bg-card/50 backdrop-blur-xl sticky top-0 z-50">
-                <div className="container mx-auto px-4 py-4 lg:py-6">
+        <div className="min-h-screen bg-background text-text selection:bg-primary/30 antialiased overflow-x-hidden">
+            {/* Optimized Header - Removed GitHub */}
+            <header className="border-b border-white/5 bg-background/60 backdrop-blur-2xl sticky top-0 z-50">
+                <div className="container mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                                <Zap className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+                        <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-tr from-primary via-primary to-accent flex items-center justify-center shadow-lg group-hover:scale-105 transition-all">
+                                <Zap className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl lg:text-3xl font-bold gradient-text">
-                                    ErrandMaster
+                                <h1 className="text-2xl lg:text-3xl font-black gradient-text tracking-tighter uppercase">
+                                    ERRANDMASTER
                                 </h1>
-                                <p className="text-xs lg:text-sm text-text-muted">
-                                    Multimodal Logistics Agent • Gemini 3 SDK
+                                <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] opacity-60">
+                                    Gemini 3 Native Multimodality
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 lg:gap-4">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowSettings(true)}
-                                className={`p-3 rounded-xl transition-all duration-200 border ${apiKey ? 'border-border bg-card' : 'border-primary/50 bg-primary/10 animate-pulse'
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs transition-all border ${apiKey
+                                    ? 'border-border bg-card/50 text-text-muted hover:border-primary/50 hover:text-text'
+                                    : 'border-primary bg-primary/10 text-primary animate-pulse'
                                     }`}
-                                title="API Settings"
                             >
-                                {apiKey ? <Settings className="w-5 h-5 text-text-muted" /> : <Key className="w-5 h-5 text-primary" />}
+                                {apiKey ? <Settings className="w-4 h-4" /> : <Key className="w-4 h-4" />}
+                                {apiKey ? 'AI ACTIVE' : 'ACTIVATE CORE'}
                             </button>
-                            <a
-                                href="https://github.com/ar48code-dev"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-3 rounded-xl bg-card border border-border hover:bg-card-hover transition-all duration-200"
-                            >
-                                <Github className="w-5 h-5" />
-                            </a>
                         </div>
                     </div>
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="container mx-auto px-4 py-8 lg:py-12">
+            {/* Dashboard Layout */}
+            <main className="container mx-auto px-6 py-12 lg:py-24 max-w-6xl">
+
                 {/* Settings Modal */}
                 {showSettings && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-                        <div className="glass-card w-full max-w-md p-6 lg:p-8 animate-slide-up">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <Key className="w-6 h-6 text-primary" />
-                                    <h3 className="text-xl font-bold">API Configuration</h3>
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/90 backdrop-blur-xl animate-fade-in">
+                        <div className="glass-card w-full max-w-lg p-10 animate-slide-up border-2 border-primary/20 relative shadow-2xl">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent" />
+
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-4">
+                                    <ShieldCheck className="w-8 h-8 text-primary" />
+                                    <div>
+                                        <h3 className="text-2xl font-black">AI Core Access</h3>
+                                        <p className="text-sm text-text-muted">Enter Gemini API Credentials</p>
+                                    </div>
                                 </div>
-                                <button onClick={() => setShowSettings(false)} className="p-2 hover:bg-background rounded-lg">
-                                    <X className="w-5 h-5" />
+                                <button onClick={() => setShowSettings(false)} className="p-2 hover:bg-white/5 rounded-xl">
+                                    <X className="w-6 h-6" />
                                 </button>
                             </div>
 
-                            <form onSubmit={saveApiKey} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-text-muted mb-2">Gemini API Key</label>
+                            <form onSubmit={saveApiKey} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-text-muted uppercase tracking-widest pl-1">Gemini API Key</label>
                                     <input
                                         type="password"
                                         value={tempKey}
                                         onChange={(e) => setTempKey(e.target.value)}
-                                        placeholder="Enter your Gemini 3 API key..."
-                                        className="input-field"
+                                        placeholder="Paste your key here..."
+                                        className="input-field py-4 bg-background/50 border-2 border-border focus:border-primary"
                                         required
                                     />
-                                    <p className="mt-2 text-xs text-text-muted">
-                                        Your key is stored locally in your browser. Get one at{' '}
-                                        <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-primary underline">Google AI Studio</a>.
+                                    <p className="text-xs text-text-muted">
+                                        Intelligence core activation requires a valid key from <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-primary hover:underline font-bold">Google Studio</a>.
                                     </p>
                                 </div>
-                                <button type="submit" className="btn-gradient w-full flex items-center justify-center gap-2">
+                                <button type="submit" className="btn-gradient w-full py-4 text-lg font-black flex items-center justify-center gap-3">
                                     <Check className="w-5 h-5" />
-                                    Save Changes
+                                    INITIALIZE SYSTEM
                                 </button>
                             </form>
                         </div>
                     </div>
                 )}
 
-                {/* Hero Section */}
-                <div className="text-center mb-12 lg:mb-16">
-                    <h2 className="text-4xl lg:text-7xl font-bold mb-4 gradient-text leading-tight tracking-tight">
-                        The Future of Logistics<br />is Multimodal.
+                {/* Hero / Pitch */}
+                <div className="text-center mb-24 lg:mb-32 relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none -z-10" />
+
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-8">
+                        <Cpu className="w-3 h-3" />
+                        Next-Gen Logistics Engine
+                    </div>
+                    <h2 className="text-6xl lg:text-9xl font-black mb-8 gradient-text leading-[0.85] tracking-tighter uppercase">
+                        ONE PAGE.<br />INFINITE PATHS.
                     </h2>
-                    <p className="text-lg lg:text-xl text-text-muted max-w-3xl mx-auto leading-relaxed">
-                        ErrandMaster uses Gemini 3's advanced spatial reasoning to turn messy lists, receipts, and photos into lightning-fast, optimized routes.
+                    <p className="text-lg lg:text-xl text-text-muted max-w-2xl mx-auto leading-relaxed font-medium">
+                        Parallel analysis of <span className="text-text font-bold">handwritten lists, audio memos, and camera scans</span> via Gemini 3 native interleaved reasoning.
                     </p>
                 </div>
 
-                {/* Input Panel */}
-                <div className="max-w-4xl mx-auto mb-8">
-                    <InputPanel onAnalyze={handleAnalyze} isLoading={isLoading} />
-                </div>
+                {/* Main Dashboard */}
+                <div className="space-y-24">
+                    <section id="input-section" className="scroll-mt-32">
+                        <InputPanel onAnalyze={handleAnalyze} isLoading={isLoading} />
+                    </section>
 
-                {/* Loading State */}
-                {isLoading && (
-                    <div className="max-w-4xl mx-auto">
-                        <LoadingState />
-                    </div>
-                )}
+                    {isLoading && (
+                        <div className="py-20 animate-fade-in">
+                            <LoadingState />
+                        </div>
+                    )}
 
-                {/* Error Display */}
-                {error && !isLoading && (
-                    <div className="max-w-4xl mx-auto glass-card p-6 border-2 border-red-500/50 fade-in mb-8">
-                        <div className="flex items-start gap-4 text-red-400">
-                            <AlertTriangle className="w-6 h-6 flex-shrink-0" />
-                            <div>
-                                <h3 className="text-lg font-bold mb-1">Logistics Error</h3>
-                                <p>{error}</p>
+                    {error && !isLoading && (
+                        <div className="glass-card p-8 border-2 border-red-500/30 bg-red-500/5 animate-shake">
+                            <div className="flex items-start gap-4 text-red-500">
+                                <AlertTriangle className="w-8 h-8 flex-shrink-0" />
+                                <div>
+                                    <h3 className="text-xl font-black uppercase tracking-widest">Reasoning Fault</h3>
+                                    <p className="font-medium opacity-80">{error}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Results */}
-                {result && !isLoading && (
-                    <div className="max-w-4xl mx-auto">
-                        <RouteDisplay data={result} />
-                    </div>
-                )}
+                    {result && !isLoading && (
+                        <section id="results-section" className="scroll-mt-32 pt-16 border-t border-white/5">
+                            <RouteDisplay data={result} />
+                        </section>
+                    )}
 
-                {/* Getting Started Guide if no key */}
-                {!apiKey && !isLoading && (
-                    <div className="max-w-2xl mx-auto text-center py-12 glass-card border-dashed border-primary/30">
-                        <h3 className="text-2xl font-bold mb-4">Set Up Your Intelligence</h3>
-                        <p className="text-text-muted mb-6 px-8">
-                            To activate ErrandMaster's AI core, please provide a Gemini API key. This ensures the app always works regardless of global usage limits.
-                        </p>
-                        <button onClick={() => setShowSettings(true)} className="btn-gradient">
-                            Add API Key
-                        </button>
-                    </div>
-                )}
+                    {!result && !isLoading && !error && apiKey && (
+                        <div className="text-center py-24 glass-card border-dashed border-primary/20">
+                            <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-8">
+                                <Zap className="w-10 h-10 text-primary" />
+                            </div>
+                            <h3 className="text-2xl font-black uppercase tracking-tight mb-2">Ready for Synthesis</h3>
+                            <p className="text-text-muted max-w-xs mx-auto text-sm font-medium">
+                                Provide multimodal sources to begin logistical cross-referencing.
+                            </p>
+                        </div>
+                    )}
+                </div>
             </main>
 
-            {/* Footer */}
-            <footer className="border-t border-border mt-16 lg:mt-24 bg-card/30">
-                <div className="container mx-auto px-4 py-12">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                        <div className="flex items-center gap-3">
-                            <Zap className="w-6 h-6 text-primary" />
-                            <span className="font-bold text-xl">ErrandMaster</span>
+            {/* Final Footer - Simplified Branding */}
+            <footer className="border-t border-white/5 mt-32 bg-card/10">
+                <div className="container mx-auto px-6 py-16">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-10">
+                        <div className="text-center md:text-left">
+                            <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
+                                <Zap className="w-5 h-5 text-primary" />
+                                <span className="font-black text-xl tracking-tighter uppercase">ERRANDMASTER</span>
+                            </div>
                         </div>
 
-                        <div className="text-center text-sm text-text-muted">
-                            Built for Gemini 3 Hackathon • No Mock Data • Pure Innovation
-                        </div>
-
-                        <div className="text-xs font-mono text-text-muted">
-                            v1.0.0-PROD
+                        <div className="flex flex-col items-center">
+                            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-text-muted tracking-[0.4em] uppercase mb-1">
+                                v1.0.0
+                            </span>
+                            <span className="text-[10px] text-text-muted/30 font-bold uppercase tracking-widest">
+                                Gemini 3 Hackathon 2026
+                            </span>
                         </div>
                     </div>
                 </div>
